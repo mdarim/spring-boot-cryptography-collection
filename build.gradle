@@ -1,0 +1,126 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'org.springframework.boot' version "${springBoot}" apply false
+}
+
+apply plugin: 'io.spring.dependency-management'
+//
+//tasks.withType(JavaCompile).configureEach {
+//    options.compilerArgs.addAll([
+//            '--add-exports', 'java.base/sun.security.x509=ALL-UNNAMED'
+//    ])
+//}
+//
+//tasks.withType(JavaExec).configureEach {
+//    jvmArgs.addAll([
+//            '--add-exports', 'java.base/sun.security.x509=ALL-UNNAMED'
+//    ])
+//}
+
+// read more about idea plugin in https://docs.gradle.org/current/userguide/idea_plugin.html
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+project.group = "com.javatmp.demo"
+project.version = "0.0.1"
+
+allprojects {
+    group = project.group
+    version = project.version
+
+    java {
+        sourceCompatibility = JavaLanguageVersion.of(23)
+        targetCompatibility = JavaLanguageVersion.of(23)
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(23) // or your desired version
+        }
+    }
+
+}
+
+subprojects {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter'
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        testCompileOnly 'org.projectlombok:lombok'
+        testAnnotationProcessor 'org.projectlombok:lombok'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+
+    bootJar {
+        enabled = false
+//        mainClass = ''
+    }
+
+    // Skips tests if you do not provide prod project property from command line
+    // ex: `./gradlew build -Pprod`
+//    tasks.named('test') {
+//        onlyIf {
+//            project.hasProperty('prod')
+//        }
+//    }
+
+}
+//
+//test {
+//    exclude 'com/javatmp/**/*'
+//}
+//test {
+//    exclude '**/*'
+//}
+//
+
+tasks.register('fullClean') {
+    doLast {
+        rootProject.subprojects.each { subproject ->
+            println "Performing a full clean on: ${rootDir}/${subproject.name}"
+            delete "${rootDir}/${subproject.name}/bin"
+            delete "${rootDir}/${subproject.name}/.classpath"
+            delete "${rootDir}/${subproject.name}/.project"
+            delete "${rootDir}/${subproject.name}/.settings"
+            delete "${rootDir}/${subproject.name}/build"
+        }
+
+        println "Performing a full clean on: ${project.rootDir}"
+        delete "${rootDir}/bin"
+        delete "${rootDir}/.classpath"
+        delete "${rootDir}/.project"
+        delete "${rootDir}/.settings"
+        delete "${rootDir}/build"
+    }
+}
